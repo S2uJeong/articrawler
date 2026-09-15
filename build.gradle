@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.v1'
+version = '0.0.1-SNAPSHOT'
+description = 'articrawler'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.jsoup:jsoup:1.18.1'
+    runtimeOnly 'com.h2database:h2'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Optional: bundle the built React frontend into this Spring Boot app so it can be deployed
+// as a single server/jar (per the design guide - no separate frontend host). Not wired into
+// the default build so a plain `./gradlew build` never requires Node; run explicitly with:
+//   ./gradlew copyFrontend build
+tasks.register('npmInstall', Exec) {
+    workingDir 'frontend'
+    commandLine 'npm', 'install'
+    inputs.file('frontend/package.json')
+    outputs.dir('frontend/node_modules')
+}
+
+tasks.register('npmBuild', Exec) {
+    dependsOn tasks.named('npmInstall')
+    workingDir 'frontend'
+    commandLine 'npm', 'run', 'build'
+    inputs.dir('frontend/src')
+    outputs.dir('frontend/dist')
+}
+
+tasks.register('copyFrontend', Copy) {
+    dependsOn tasks.named('npmBuild')
+    from 'frontend/dist'
+    into 'src/main/resources/static'
+}

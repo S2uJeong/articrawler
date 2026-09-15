@@ -1,0 +1,39 @@
+import { NavLink, Route, Routes } from 'react-router-dom';
+import NewsListPage from './pages/NewsListPage';
+import PopularPage from './pages/PopularPage';
+import StatsPage from './pages/StatsPage';
+import AdminPage from './pages/AdminPage';
+
+export default function App() {
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="app-header-inner">
+          <span className="brand">뉴스 대시보드</span>
+          <nav className="app-nav">
+            <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
+              뉴스 목록
+            </NavLink>
+            <NavLink to="/popular" className={({ isActive }) => (isActive ? 'active' : '')}>
+              인기 뉴스
+            </NavLink>
+            <NavLink to="/stats" className={({ isActive }) => (isActive ? 'active' : '')}>
+              통계
+            </NavLink>
+            <NavLink to="/admin" className={({ isActive }) => (isActive ? 'active' : '')}>
+              관리
+            </NavLink>
+          </nav>
+        </div>
+      </header>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<NewsListPage />} />
+          <Route path="/popular" element={<PopularPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
