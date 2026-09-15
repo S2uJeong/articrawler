@@ -33,6 +33,7 @@ public class ArticleController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String category,
       @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String source,
       @RequestParam(required = false) LocalDate from,
       @RequestParam(required = false) LocalDate to,
       @PageableDefault(size = 20) Pageable pageable) {
@@ -41,6 +42,7 @@ public class ArticleController {
             q,
             category,
             keyword,
+            source,
             from == null ? null : from.atStartOfDay(),
             to == null ? null : to.plusDays(1).atStartOfDay());
     return PageResponse.from(articleService.search(criteria, pageable));

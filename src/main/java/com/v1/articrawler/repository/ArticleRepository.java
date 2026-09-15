@@ -35,6 +35,12 @@ public interface ArticleRepository
           + "group by a.collectionSourceName order by count(a) desc")
   List<KeywordCount> countByKeyword();
 
+  /** Every press byline actually present on a collected article - not just the ones we registered as a direct feed - so the UI filter reflects real data. */
+  @Query(
+      "select a.sourceName as sourceName, count(a) as count "
+          + "from Article a where a.sourceName is not null group by a.sourceName order by count(a) desc")
+  List<SourceNameCount> countBySourceName();
+
   @Query(
       "select a, count(c) as clicks from Article a join ArticleClick c on c.article = a "
           + "where c.clickedAt between :from and :to group by a order by clicks desc")
@@ -49,6 +55,12 @@ public interface ArticleRepository
 
   interface KeywordCount {
     String getKeyword();
+
+    long getCount();
+  }
+
+  interface SourceNameCount {
+    String getSourceName();
 
     long getCount();
   }

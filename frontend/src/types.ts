@@ -70,6 +70,11 @@ export interface KeywordCount {
   count: number;
 }
 
+export interface SourceCount {
+  sourceName: string;
+  count: number;
+}
+
 export type CollectionSourceType = 'CATEGORY' | 'KEYWORD' | 'PRESS';
 export type CollectionStatus = 'SUCCESS' | 'PARTIAL' | 'FAILED';
 

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { api, buildQuery } from '../api/client';
-import { Article, Category, Keyword, PageResult } from '../types';
+import { Article, Category, Keyword, PageResult, SourceCount } from '../types';
 import ArticleCard from '../components/ArticleCard';
 import Pagination from '../components/Pagination';
 
 export default function NewsListPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
+  const [sources, setSources] = useState<SourceCount[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [source, setSource] = useState('');
   const [page, setPage] = useState(0);
   const [result, setResult] = useState<PageResult<Article> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,18 +20,21 @@ export default function NewsListPage() {
   useEffect(() => {
     api.get<Category[]>('/categories').then(setCategories).catch(() => {});
     api.get<Keyword[]>('/keywords').then(setKeywords).catch(() => {});
+    // Every press byline actually seen in the data (not just outlets we registered as a direct
+    // feed) - e.g. MBC뉴스/머니투데이 only ever arrive via Google News, but should still be filterable.
+    api.get<SourceCount[]>('/stats/sources').then(setSources).catch(() => {});
   }, []);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    const qs = buildQuery({ q: query, category, keyword, page, size: 12 });
+    const qs = buildQuery({ q: query, category, keyword, source, page, size: 12 });
     api
       .get<PageResult<Article>>(`/articles${qs}`)
       .then(setResult)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [query, category, keyword, page]);
+  }, [query, category, keyword, source, page]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,16 +81,30 @@ export default function NewsListPage() {
             </option>
           ))}
         </select>
+        <select
+          value={source}
+          onChange={(e) => {
+            setSource(e.target.value);
+            setPage(0);
+          }}
+        >
+          <option value="">전체 언론사</option>
+          {sources.map((s) => (
+            <option key={s.sourceName} value={s.sourceName}>
+              {s.sourceName} ({s.count})
+            </option>
+          ))}
+        </select>
         <button type="submit">검색</button>
         <a
           className="export-link"
-          href={`/api/export/articles.csv${buildQuery({ q: query, category, keyword })}`}
+          href={`/api/export/articles.csv${buildQuery({ q: query, category, keyword, source })}`}
         >
           CSV 다운로드
         </a>
         <a
           className="export-link"
-          href={`/api/export/articles.json${buildQuery({ q: query, category, keyword })}`}
+          href={`/api/export/articles.json${buildQuery({ q: query, category, keyword, source })}`}
         >
           JSON 다운로드
         </a>

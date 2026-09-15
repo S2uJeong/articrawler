@@ -27,6 +27,7 @@ public class ExportController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String category,
       @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String source,
       @RequestParam(required = false) LocalDate from,
       @RequestParam(required = false) LocalDate to,
       HttpServletResponse response)
@@ -35,7 +36,7 @@ public class ExportController {
     response.setHeader("Content-Disposition", "attachment; filename=\"articles.csv\"");
     // Leading BOM so Excel opens the UTF-8 file (with Korean text) correctly.
     response.getWriter().write('﻿');
-    exportService.writeCsv(criteria(q, category, keyword, from, to), response.getWriter());
+    exportService.writeCsv(criteria(q, category, keyword, source, from, to), response.getWriter());
   }
 
   @GetMapping("/articles.json")
@@ -43,19 +44,21 @@ public class ExportController {
       @RequestParam(required = false) String q,
       @RequestParam(required = false) String category,
       @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String source,
       @RequestParam(required = false) LocalDate from,
       @RequestParam(required = false) LocalDate to,
       HttpServletResponse response) {
     response.setHeader("Content-Disposition", "attachment; filename=\"articles.json\"");
-    return exportService.exportList(criteria(q, category, keyword, from, to));
+    return exportService.exportList(criteria(q, category, keyword, source, from, to));
   }
 
   private ArticleSearchCriteria criteria(
-      String q, String category, String keyword, LocalDate from, LocalDate to) {
+      String q, String category, String keyword, String source, LocalDate from, LocalDate to) {
     return new ArticleSearchCriteria(
         q,
         category,
         keyword,
+        source,
         from == null ? null : from.atStartOfDay(),
         to == null ? null : to.plusDays(1).atStartOfDay());
   }

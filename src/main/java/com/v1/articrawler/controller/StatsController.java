@@ -4,6 +4,7 @@ import com.v1.articrawler.dto.CategoryCountResponse;
 import com.v1.articrawler.dto.DailyCollectionStatResponse;
 import com.v1.articrawler.dto.KeywordCountResponse;
 import com.v1.articrawler.dto.PopularArticleResponse;
+import com.v1.articrawler.dto.SourceCountResponse;
 import com.v1.articrawler.dto.TrendingArticleResponse;
 import com.v1.articrawler.service.StatsService;
 import java.time.LocalDateTime;
@@ -49,6 +50,11 @@ public class StatsController {
   @GetMapping("/keywords")
   public List<KeywordCountResponse> keywordCounts() {
     return statsService.keywordCounts();
+  }
+
+  @GetMapping("/sources")
+  public List<SourceCountResponse> sourceCounts() {
+    return statsService.sourceCounts();
   }
 
   @GetMapping("/collection")

@@ -8,6 +8,7 @@ import com.v1.articrawler.dto.CategoryCountResponse;
 import com.v1.articrawler.dto.DailyCollectionStatResponse;
 import com.v1.articrawler.dto.KeywordCountResponse;
 import com.v1.articrawler.dto.PopularArticleResponse;
+import com.v1.articrawler.dto.SourceCountResponse;
 import com.v1.articrawler.dto.TrendingArticleResponse;
 import com.v1.articrawler.repository.ArticleClickRepository;
 import com.v1.articrawler.repository.ArticleRepository;
@@ -78,6 +79,12 @@ public class StatsService {
   public List<KeywordCountResponse> keywordCounts() {
     return articleRepository.countByKeyword().stream()
         .map(r -> new KeywordCountResponse(r.getKeyword(), r.getCount()))
+        .toList();
+  }
+
+  public List<SourceCountResponse> sourceCounts() {
+    return articleRepository.countBySourceName().stream()
+        .map(r -> new SourceCountResponse(r.getSourceName(), r.getCount()))
         .toList();
   }
 

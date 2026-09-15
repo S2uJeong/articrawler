@@ -27,6 +27,9 @@ public final class ArticleSpecifications {
       if (StringUtils.hasText(criteria.keyword())) {
         predicates.add(cb.equal(root.get("collectionSourceName"), criteria.keyword()));
       }
+      if (StringUtils.hasText(criteria.source())) {
+        predicates.add(cb.equal(root.get("sourceName"), criteria.source()));
+      }
       if (criteria.from() != null) {
         predicates.add(cb.greaterThanOrEqualTo(root.get("publishedAt"), criteria.from()));
       }
