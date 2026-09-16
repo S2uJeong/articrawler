@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../api/client';
-import { Category, CollectionRun, Keyword, PressFeed } from '../types';
+import { Category, CollectionRun, PressFeed } from '../types';
 
 const SOURCE_TYPE_LABEL: Record<string, string> = { CATEGORY: '카테고리', KEYWORD: '키워드', PRESS: '언론사' };
 
@@ -13,13 +13,10 @@ function formatDate(value: string | null): string {
 
 export default function AdminPage() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [pressFeeds, setPressFeeds] = useState<PressFeed[]>([]);
   const [runs, setRuns] = useState<CollectionRun[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryTopic, setNewCategoryTopic] = useState('');
-  const [newKeyword, setNewKeyword] = useState('');
-  const [newKeywordCategoryId, setNewKeywordCategoryId] = useState('');
   const [newFeedName, setNewFeedName] = useState('');
   const [newFeedUrl, setNewFeedUrl] = useState('');
   const [newFeedCategoryId, setNewFeedCategoryId] = useState('');
@@ -27,7 +24,6 @@ export default function AdminPage() {
 
   function reload() {
     api.get<Category[]>('/categories').then(setCategories).catch(() => {});
-    api.get<Keyword[]>('/keywords').then(setKeywords).catch(() => {});
     api.get<PressFeed[]>('/press-feeds').then(setPressFeeds).catch(() => {});
     api.get<CollectionRun[]>('/collection/runs').then(setRuns).catch(() => {});
   }
@@ -55,30 +51,6 @@ export default function AdminPage() {
   async function deleteCategory(c: Category) {
     if (!confirm(`"${c.name}" 카테고리를 삭제하시겠습니까?`)) return;
     await api.delete(`/categories/${c.id}`);
-    reload();
-  }
-
-  async function addKeyword(e: FormEvent) {
-    e.preventDefault();
-    if (!newKeyword.trim()) return;
-    await api.post('/keywords', {
-      keyword: newKeyword.trim(),
-      categoryId: newKeywordCategoryId ? Number(newKeywordCategoryId) : null,
-      enabled: true,
-    });
-    setNewKeyword('');
-    setNewKeywordCategoryId('');
-    reload();
-  }
-
-  async function toggleKeyword(k: Keyword) {
-    await api.put(`/keywords/${k.id}`, { keyword: k.keyword, categoryId: k.categoryId, enabled: !k.enabled });
-    reload();
-  }
-
-  async function deleteKeyword(k: Keyword) {
-    if (!confirm(`"${k.keyword}" 키워드를 삭제하시겠습니까?`)) return;
-    await api.delete(`/keywords/${k.id}`);
     reload();
   }
 
@@ -168,51 +140,6 @@ export default function AdminPage() {
                 </td>
                 <td>
                   <button className="link-btn" onClick={() => deleteCategory(c)}>
-                    삭제
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="admin-card">
-        <h2>관심 키워드 관리</h2>
-        <p className="hint">검색 기반으로 수집할 키워드를 등록합니다. 카테고리를 지정하면 그 카테고리로 분류됩니다.</p>
-        <form className="inline-form" onSubmit={addKeyword}>
-          <input placeholder="키워드 (예: ETF)" value={newKeyword} onChange={(e) => setNewKeyword(e.target.value)} />
-          <select value={newKeywordCategoryId} onChange={(e) => setNewKeywordCategoryId(e.target.value)}>
-            <option value="">카테고리 없음</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <button type="submit">추가</button>
-        </form>
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>키워드</th>
-              <th>카테고리</th>
-              <th>마지막 수집</th>
-              <th>사용</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {keywords.map((k) => (
-              <tr key={k.id}>
-                <td>{k.keyword}</td>
-                <td>{k.categoryName || '-'}</td>
-                <td>{formatDate(k.lastCollectedAt)}</td>
-                <td>
-                  <input type="checkbox" checked={k.enabled} onChange={() => toggleKeyword(k)} />
-                </td>
-                <td>
-                  <button className="link-btn" onClick={() => deleteKeyword(k)}>
                     삭제
                   </button>
                 </td>

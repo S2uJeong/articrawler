@@ -2,6 +2,7 @@ import { NavLink, Route, Routes } from 'react-router-dom';
 import NewsListPage from './pages/NewsListPage';
 import PopularPage from './pages/PopularPage';
 import StatsPage from './pages/StatsPage';
+// AdminPage는 화면 탭에서 숨김 처리. 백엔드 및 라우트는 유지.
 import AdminPage from './pages/AdminPage';
 
 export default function App() {
@@ -19,9 +20,6 @@ export default function App() {
             </NavLink>
             <NavLink to="/stats" className={({ isActive }) => (isActive ? 'active' : '')}>
               통계
-            </NavLink>
-            <NavLink to="/admin" className={({ isActive }) => (isActive ? 'active' : '')}>
-              관리
             </NavLink>
           </nav>
         </div>
