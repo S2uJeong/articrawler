@@ -43,6 +43,7 @@ public class NewsSourceCollector {
   private final KeywordRepository keywordRepository;
   private final PressFeedRepository pressFeedRepository;
   private final ArticleRepository articleRepository;
+  private final ArticleWriter articleWriter;
   private final CollectionRunRepository collectionRunRepository;
   private final GoogleNewsRssClient rssClient;
   private final DirectRssFeedClient directRssFeedClient;
@@ -56,6 +57,7 @@ public class NewsSourceCollector {
       KeywordRepository keywordRepository,
       PressFeedRepository pressFeedRepository,
       ArticleRepository articleRepository,
+      ArticleWriter articleWriter,
       CollectionRunRepository collectionRunRepository,
       GoogleNewsRssClient rssClient,
       DirectRssFeedClient directRssFeedClient,
@@ -65,6 +67,7 @@ public class NewsSourceCollector {
     this.keywordRepository = keywordRepository;
     this.pressFeedRepository = pressFeedRepository;
     this.articleRepository = articleRepository;
+    this.articleWriter = articleWriter;
     this.collectionRunRepository = collectionRunRepository;
     this.rssClient = rssClient;
     this.directRssFeedClient = directRssFeedClient;
@@ -171,7 +174,7 @@ public class NewsSourceCollector {
       try {
         ArticleEnrichment enrichment = enrichments.getOrDefault(item.link(), ArticleEnrichment.EMPTY);
         Article article = buildArticle(item, enrichment, category, sourceType, sourceName);
-        articleRepository.save(article);
+        articleWriter.save(article);
         run.setNewCount(run.getNewCount() + 1);
       } catch (Exception e) {
         log.warn("Failed to process feed item '{}': {}", item.title(), e.toString());

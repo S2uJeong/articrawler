@@ -51,7 +51,7 @@ public class Article {
   @Column(name = "source_name", length = 200)
   private String sourceName;
 
-  @Column(name = "link", nullable = false, length = 1000)
+  @Column(name = "link", nullable = false, length = 2048)
   private String link;
 
   @Column(name = "link_hash", nullable = false, length = 64)
