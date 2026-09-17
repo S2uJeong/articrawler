@@ -18,9 +18,7 @@ export default function App() {
             <NavLink to="/popular" className={({ isActive }) => (isActive ? 'active' : '')}>
               인기 뉴스
             </NavLink>
-            <NavLink to="/stats" className={({ isActive }) => (isActive ? 'active' : '')}>
-              통계
-            </NavLink>
+            {/* 통계 탭은 화면에서 숨김 처리. 백엔드 및 라우트는 유지. */}
           </nav>
         </div>
       </header>

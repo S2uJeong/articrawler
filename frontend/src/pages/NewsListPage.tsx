@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api, buildQuery } from '../api/client';
-import { Article, Category, Keyword, PageResult, SourceCount } from '../types';
+import { Article, Keyword, PageResult, SourceCount } from '../types';
 import ArticleCard from '../components/ArticleCard';
 import Pagination from '../components/Pagination';
 
@@ -12,11 +12,9 @@ function formatDate(value: string | null): string {
 }
 
 export default function NewsListPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [sources, setSources] = useState<SourceCount[]>([]);
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('');
   const [keyword, setKeyword] = useState('');
   const [source, setSource] = useState('');
   const [page, setPage] = useState(0);
@@ -25,14 +23,12 @@ export default function NewsListPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [newKeyword, setNewKeyword] = useState('');
-  const [newKeywordCategoryId, setNewKeywordCategoryId] = useState('');
 
   function loadKeywords() {
     api.get<Keyword[]>('/keywords').then(setKeywords).catch(() => {});
   }
 
   useEffect(() => {
-    api.get<Category[]>('/categories').then(setCategories).catch(() => {});
     loadKeywords();
     // Every press byline actually seen in the data (not just outlets we registered as a direct
     // feed) - e.g. MBC뉴스/머니투데이 only ever arrive via Google News, but should still be filterable.
@@ -44,11 +40,10 @@ export default function NewsListPage() {
     if (!newKeyword.trim()) return;
     await api.post('/keywords', {
       keyword: newKeyword.trim(),
-      categoryId: newKeywordCategoryId ? Number(newKeywordCategoryId) : null,
+      categoryId: null,
       enabled: true,
     });
     setNewKeyword('');
-    setNewKeywordCategoryId('');
     loadKeywords();
   }
 
@@ -66,13 +61,13 @@ export default function NewsListPage() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    const qs = buildQuery({ q: query, category, keyword, source, page, size: 12 });
+    const qs = buildQuery({ q: query, keyword, source, page, size: 12 });
     api
       .get<PageResult<Article>>(`/articles${qs}`)
       .then(setResult)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [query, category, keyword, source, page]);
+  }, [query, keyword, source, page]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -83,36 +78,29 @@ export default function NewsListPage() {
     <div className="news-layout">
       <aside className="news-sidebar admin-card">
         <h2>관심 키워드 관리</h2>
-        <p className="hint">검색 기반으로 수집할 키워드를 등록합니다. 카테고리를 지정하면 그 카테고리로 분류됩니다.</p>
+        <p className="hint">검색 기반으로 수집할 키워드를 등록합니다.</p>
         <form className="keyword-form-vertical" onSubmit={addKeyword}>
           <input placeholder="키워드 (예: ETF)" value={newKeyword} onChange={(e) => setNewKeyword(e.target.value)} />
-          <select value={newKeywordCategoryId} onChange={(e) => setNewKeywordCategoryId(e.target.value)}>
-            <option value="">카테고리 없음</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
           <button type="submit">추가</button>
         </form>
-        <div className="keyword-list">
-          {keywords.map((k) => (
-            <div className="keyword-item" key={k.id}>
-              <div className="keyword-item-main">
-                <div className="keyword-item-name">{k.keyword}</div>
-                <div className="keyword-item-meta">
-                  {k.categoryName || '카테고리 없음'} · {formatDate(k.lastCollectedAt)}
+        <details className="keyword-details">
+          <summary>등록된 키워드 {keywords.length}개</summary>
+          <div className="keyword-list">
+            {keywords.map((k) => (
+              <div className="keyword-item" key={k.id}>
+                <div className="keyword-item-main">
+                  <div className="keyword-item-name">{k.keyword}</div>
+                  <div className="keyword-item-meta">마지막 수집: {formatDate(k.lastCollectedAt)}</div>
                 </div>
+                <input type="checkbox" checked={k.enabled} onChange={() => toggleKeyword(k)} />
+                <button className="link-btn" onClick={() => deleteKeyword(k)}>
+                  삭제
+                </button>
               </div>
-              <input type="checkbox" checked={k.enabled} onChange={() => toggleKeyword(k)} />
-              <button className="link-btn" onClick={() => deleteKeyword(k)}>
-                삭제
-              </button>
-            </div>
-          ))}
-          {keywords.length === 0 && <div className="empty">등록된 키워드가 없습니다.</div>}
-        </div>
+            ))}
+            {keywords.length === 0 && <div className="empty">등록된 키워드가 없습니다.</div>}
+          </div>
+        </details>
       </aside>
 
       <div className="news-main">
@@ -126,20 +114,7 @@ export default function NewsListPage() {
               setPage(0);
             }}
           />
-          <select
-            value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setPage(0);
-            }}
-          >
-            <option value="">전체 카테고리</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <button type="submit">검색</button>
           <select
             value={keyword}
             onChange={(e) => {
@@ -168,19 +143,7 @@ export default function NewsListPage() {
               </option>
             ))}
           </select>
-          <button type="submit">검색</button>
-          <a
-            className="export-link"
-            href={`/api/export/articles.csv${buildQuery({ q: query, category, keyword, source })}`}
-          >
-            CSV 다운로드
-          </a>
-          <a
-            className="export-link"
-            href={`/api/export/articles.json${buildQuery({ q: query, category, keyword, source })}`}
-          >
-            JSON 다운로드
-          </a>
+
         </form>
 
         {error && <div className="error-box">{error}</div>}

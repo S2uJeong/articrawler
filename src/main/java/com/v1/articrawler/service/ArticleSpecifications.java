@@ -8,6 +8,9 @@ import org.springframework.util.StringUtils;
 
 public final class ArticleSpecifications {
 
+  // 관리자 없이 운영하는 동안은 금융 카테고리만 서비스한다. 범위를 넓히려면 이 값만 바꾸면 된다.
+  private static final String FIXED_CATEGORY = "금융";
+
   private ArticleSpecifications() {}
 
   public static Specification<Article> fromCriteria(ArticleSearchCriteria criteria) {
@@ -21,9 +24,7 @@ public final class ArticleSpecifications {
                 cb.like(cb.lower(root.get("title")), like),
                 cb.like(cb.lower(root.get("summary")), like)));
       }
-      if (StringUtils.hasText(criteria.category())) {
-        predicates.add(cb.equal(root.get("category"), criteria.category()));
-      }
+      predicates.add(cb.equal(root.get("category"), FIXED_CATEGORY));
       if (StringUtils.hasText(criteria.keyword())) {
         predicates.add(cb.equal(root.get("collectionSourceName"), criteria.keyword()));
       }
@@ -36,6 +37,9 @@ public final class ArticleSpecifications {
       if (criteria.to() != null) {
         predicates.add(cb.lessThanOrEqualTo(root.get("publishedAt"), criteria.to()));
       }
+      // 대표 이미지가 없는 기사는 목록/내보내기에서 제외한다.
+      predicates.add(cb.isNotNull(root.get("imageUrl")));
+      predicates.add(cb.notEqual(root.get("imageUrl"), ""));
       return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
     };
   }
